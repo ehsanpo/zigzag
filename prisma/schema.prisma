@@ -1,0 +1,159 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+model User {
+  id         Int          @id @default(autoincrement())
+  name       String?
+  email      String
+  password   String?
+  role       Role?        @default(USER)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  teamId     Int
+  team       Team?        @relation(fields: teamId, references: id)
+  issue      Issue[]
+  Activity   Activity[]
+  Comment    Comment[]
+  Attachment Attachment[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Team {
+  id            Int      @id @default(autoincrement())
+  name          String?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  logo          String?
+  cycleSettings String?
+  users         User[]
+}
+
+model Issue {
+  id           Int           @id @default(autoincrement())
+  title        String?
+  description  String?
+  status       StatusType?   @relation(fields: [statusTypeId], references: [id])
+  statusTypeId Int?
+  priorityId   Int?
+  priority     PriorityType? @relation(fields: [id], references: [id])
+  estimateSize Int?
+  estimate     EstimateSize? @relation(fields: [estimateSize], references: [id])
+  cycleId      Int?
+  cycle        Cycle?        @relation(fields: [cycleId], references: [id])
+  projectId    Int?
+  project      Project?      @relation(fields: [projectId], references: [id])
+  assigneeId   Int?
+  assignees    User?         @relation(fields: [assigneeId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  githubPr     String?
+  githubBranch String?
+  redmineId    Int?
+  labels       Label[]
+  activities   Activity[]
+  comments     Comment[]
+  attachments  Attachment[]
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  issues      Issue[]
+}
+
+model Cycle {
+  id        Int       @id @default(autoincrement())
+  name      String?
+  startDate DateTime?
+  endDate   DateTime?
+  issues    Issue[]
+}
+
+model Roadmap {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startDate   DateTime?
+  endDate     DateTime?
+}
+
+model View {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  filters     String?
+}
+
+model Label {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  Issue       Issue[]
+}
+
+model EstimateSize {
+  id    Int     @id @default(autoincrement())
+  name  String
+  Issue Issue[]
+}
+
+model PriorityType {
+  id    Int     @id @default(autoincrement())
+  name  String
+  Issue Issue[]
+}
+
+model StatusType {
+  id    Int     @id @default(autoincrement())
+  name  String
+  Issue Issue[]
+}
+
+model Activity {
+  id      Int     @id @default(autoincrement())
+  issueId Int?
+  issue   Issue?  @relation(fields: [issueId], references: [id])
+  userId  Int?
+  user    User?   @relation(fields: [userId], references: [id])
+  action  String?
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  issueId   Int?
+  issue     Issue?   @relation(fields: [issueId], references: [id])
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  issueId   Int?
+  issue     Issue?   @relation(fields: [issueId], references: [id])
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  file      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
